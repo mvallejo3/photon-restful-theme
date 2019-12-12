@@ -1,0 +1,1 @@
+<?php die('This is not a website.'); ?>
