@@ -10,11 +10,19 @@ class PRT_Page_Controller {
   		'slug' => array(
         'validate_callback' => array( 'PRT_Validate', 'string' ),
       ),
+		);
+	}
+
+	public static function pages_endpoint_args() {
+		return array(
 			'id' => array(
-        'validate_callback' => array( 'PRT_Validate', 'int' ),
+				'validate_callback' => array( 'PRT_Validate', 'string' ),
+			),
+  		'slug' => array(
+        'validate_callback' => array( 'PRT_Validate', 'string' ),
       ),
 			'numberposts' => array(
-        'validate_callback' => array( 'PRT_Validate', 'int' ),
+        'validate_callback' => array( 'PRT_Validate', 'string' ),
       ),
 			's' => array(
         'validate_callback' => array( 'PRT_Validate', 'string' ),
@@ -35,10 +43,16 @@ class PRT_Page_Controller {
 		if ( ! empty( $_slug ) ) {
 			$_page = $this->get_page_by_slug( $_slug );
 			if ( $_page ) $_response = array( 'page' => $_page, );
-		} else {
-			$_page = $this->get_page_by_args();
-			if ( $_page ) $_response = array( 'pages' => $_page, );
 		}
+
+		return rest_ensure_response( array_merge( array(
+			'success' => boolval( null !== $_response ),
+		), (array) $_response ) );
+	}
+
+	public function get_pages_endpoint() {
+		$_page = $this->get_page_by_args();
+		if ( $_page ) $_response = array( 'pages' => $_page, );
 
 		return rest_ensure_response( array_merge( array(
 			'success' => boolval( null !== $_response ),
@@ -54,15 +68,23 @@ class PRT_Page_Controller {
 		);
 		// build additional params
 		$_approved_params = $this->get_approved_params();
+
 		if ( isset( $_approved_params['id'] ) ) {
 			$args['post__in'] = explode( ',', $_approved_params['id'] );
 			unset( $_approved_params['id'] );
 		}
 
-		$pages = get_posts( array_merge( $args, $_approved_params ) );
+		if ( isset( $_approved_params['slug'] ) ) {
+			$args['name'] = $_approved_params['slug'];
+			unset( $_approved_params['slug'] );
+		}
+
+		$combined_args = array_merge( (array) $args, (array) $_approved_params );
+
+		$pages = get_posts( $combined_args );
 
 		if( $pages ) {
-			return $pages;
+			return array_map( array( get_called_class(), 'build_page' ), $pages );
 		}
 
 		return false;
@@ -80,7 +102,7 @@ class PRT_Page_Controller {
 		$the_page = $pages[0];
 
 		if( $the_page ) {
-			return $the_page;
+			return $this->build_page( $the_page );
 		}
 
 		return false;
@@ -107,7 +129,7 @@ class PRT_Page_Controller {
 	 * @return array array of params, if the params submitted by the request exist in the list of approved params.
 	 */
 	protected function get_approved_params() {
-		$_approved = array_keys( self::page_endpoint_args() );
+		$_approved = array_keys( self::pages_endpoint_args() );
 		$_params = [];
 		foreach ( $_approved as $key ) {
 			$_p = $this->get_param( $key );
@@ -120,7 +142,14 @@ class PRT_Page_Controller {
 	}
 
 	protected function build_page( $page ) {
+		$_id = $page->ID;
 
+		// add page modules if they exists
+		if ( $_modules = get_field( 'prt_page_modules', $_id ) ) {
+			$page->page_modules = $_modules;
+		}
+
+		return $page;
 	}
 }
 
