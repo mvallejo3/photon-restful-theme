@@ -19,14 +19,22 @@ class PRT_Page_Routes {
 	  	array(
 	  		'methods'  => 'GET',
 	  		'callback' => array( $this, 'get_page' ),
-	  		'args'     => PRT_Page_Controller::get_page_args(),
+	  		'args'     => PRT_Page_Controller::page_endpoint_args(),
+	  	),
+	  ) );
+
+		register_rest_route( $this->namespace, 'pages', array(
+	  	array(
+	  		'methods'  => 'GET',
+	  		'callback' => array( $this, 'get_page' ),
+	  		'args'     => PRT_Page_Controller::page_endpoint_args(),
 	  	),
 	  ) );
   }
 
   public function get_page( $request ) {
     $controller = new PRT_Page_Controller( $request );
-    return $controller->get_page();
+    return $controller->get_page_endpoint();
   }
 }
 
