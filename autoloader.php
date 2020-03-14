@@ -13,12 +13,8 @@ class PRT_Autoloder {
 		'api/',
     'api/controllers/',
     'api/routes/',
-		'api/permissions/',
-		'api/responses/',
     'lib/',
-    'lib/exceptions/',
-    'lib/helpers/',
-		'lib/media/',
+    'lib/media/',
 		'lib/validate/',
 		'includes/acf/'
 	);

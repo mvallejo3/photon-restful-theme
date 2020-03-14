@@ -12,4 +12,11 @@ if ( class_exists( 'PRT_ACF' ) ) {
   new PRT_ACF();
 }
 
-add_action( 'rest_api_init', array( PRT_REST_Controller::get_instance(), 'register_routes' ) );
+
+add_action(
+  'rest_api_init',
+  array(
+    PRT_REST_Controller::get_instance(),
+    'register_hooks'
+  )
+);
